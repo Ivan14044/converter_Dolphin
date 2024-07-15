@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert to Dolphin Format</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Convert .txt to Dolphin Format</h1>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" accept=".txt" required>
+        <button type="submit">Convert to Dolphin Format</button>
+    </form>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const lines = e.target.result.split('\n');
+                    const data = lines.map(line => {
+                        const columns = line.split('|');
+                        return [
+                            `${columns[2]}|${columns[1]}`, // Profile name
+                            columns[12], // Cookie
+                            '', // Proxy type
+                            '', // Proxy
+                            columns[13], // User Agent
+                            `${columns[2]}|${columns[3]}` // Notes
+                        ];
+                    });
+
+                    const ws = XLSX.utils.aoa_to_sheet([['Profile name', 'Cookie', 'Proxy type', 'Proxy', 'User Agent', 'Notes'], ...data]);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Accounts');
+
+                    XLSX.writeFile(wb, 'converted_dolphin_format.xlsx');
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>
